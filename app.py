@@ -212,7 +212,13 @@ with st.sidebar.expander("🌍 Location & Product Filters", expanded=True):
 
 with st.sidebar.expander("💵 Price Range Filter", expanded=True):
     price_min, price_max = st.session_state.price_range
-    selected_price_range = st.slider("Select Price Range (R$):", min_value=price_min, max_value=price_max, value=(price_min, price_max), step=1)
+    selected_price_range = st.slider(
+        "Select Price Range (R$):", 
+        min_value=price_min, 
+        max_value=price_max, 
+        value=(price_min, price_max), 
+        step=0.01  # Use float step to match float price values
+    )
     st.session_state.price_range = selected_price_range
 
 st.sidebar.button("Clear All Filters", on_click=clear_filters, use_container_width=True)
