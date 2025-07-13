@@ -168,8 +168,6 @@ with st.spinner('Loading and processing data...'):
 
 # --- Initialize Session State for Filters ---
 def initialize_session_state():
-    if 'selected_year' not in st.session_state:
-        st.session_state.selected_year = "All Years"
     if 'date_range' not in st.session_state:
         # Initialize as tuple of two datetime.date objects
         st.session_state.date_range = (
@@ -180,31 +178,23 @@ def initialize_session_state():
         st.session_state.selected_state = "All States"
     if 'selected_category' not in st.session_state:
         st.session_state.selected_category = "All Categories"
+    if 'price_range' not in st.session_state:
+        st.session_state.price_range = (df['payment_value'].min(), df['payment_value'].max())
 
 initialize_session_state()
 
 def clear_filters():
-    st.session_state.selected_year = "All Years"
     st.session_state.date_range = (df['order_purchase_timestamp'].min().date(), df['order_purchase_timestamp'].max().date())
     st.session_state.selected_state = "All States"
     st.session_state.selected_category = "All Categories"
+    st.session_state.price_range = (df['payment_value'].min(), df['payment_value'].max())
 
 # --- Sidebar Filters ---
 st.sidebar.header("Filters")
 
 with st.sidebar.expander("📅 Date Filters", expanded=True):
-    all_years = sorted(df['purchase_year'].unique())
-    selected_year = st.selectbox("Select Year:", ["All Years"] + all_years, key='selected_year')
-
-    date_range_disabled = st.session_state.selected_year != "All Years"
-    
-    # Make sure that the value passed to st.date_input is a valid tuple of dates
-    if isinstance(st.session_state.date_range, tuple) and len(st.session_state.date_range) == 2:
-        start_date, end_date = st.session_state.date_range
-    else:
-        # Set to the full range if invalid
-        start_date, end_date = df['order_purchase_timestamp'].min().date(), df['order_purchase_timestamp'].max().date()
-
+    date_range_disabled = False
+    start_date, end_date = st.session_state.date_range
     date_range = st.date_input(
         "Or Select Date Range:", value=(start_date, end_date),
         min_value=df['order_purchase_timestamp'].min().date(),
@@ -220,24 +210,29 @@ with st.sidebar.expander("🌍 Location & Product Filters", expanded=True):
     all_categories = sorted(df['product_category_name_english'].unique())
     selected_category = st.selectbox("Select Product Category:", ["All Categories"] + all_categories, key='selected_category')
 
+with st.sidebar.expander("💵 Price Range Filter", expanded=True):
+    price_min, price_max = st.session_state.price_range
+    selected_price_range = st.slider("Select Price Range (R$):", min_value=price_min, max_value=price_max, value=(price_min, price_max), step=1)
+    st.session_state.price_range = selected_price_range
+
 st.sidebar.button("Clear All Filters", on_click=clear_filters, use_container_width=True)
 
 
 # --- Apply Filters ---
 filtered_df = df.copy()
-if st.session_state.selected_year != "All Years":
-    filtered_df = filtered_df[filtered_df['purchase_year'] == st.session_state.selected_year]
-else:
-    start_date, end_date = st.session_state.date_range
-    filtered_df = filtered_df[
-        (filtered_df['order_purchase_timestamp'].dt.date >= start_date) & 
-        (filtered_df['order_purchase_timestamp'].dt.date <= end_date)
-    ]
+start_date, end_date = st.session_state.date_range
+filtered_df = filtered_df[
+    (filtered_df['order_purchase_timestamp'].dt.date >= start_date) & 
+    (filtered_df['order_purchase_timestamp'].dt.date <= end_date)
+]
 
 if st.session_state.selected_state != "All States":
     filtered_df = filtered_df[filtered_df['customer_state'] == st.session_state.selected_state]
 if st.session_state.selected_category != "All Categories":
     filtered_df = filtered_df[filtered_df['product_category_name_english'] == st.session_state.selected_category]
+    
+price_min, price_max = st.session_state.price_range
+filtered_df = filtered_df[(filtered_df['payment_value'] >= price_min) & (filtered_df['payment_value'] <= price_max)]
 
 
 # --- Main Dashboard ---
