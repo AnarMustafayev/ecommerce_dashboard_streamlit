@@ -197,8 +197,16 @@ with st.sidebar.expander("📅 Date Filters", expanded=True):
     selected_year = st.selectbox("Select Year:", ["All Years"] + all_years, key='selected_year')
 
     date_range_disabled = st.session_state.selected_year != "All Years"
+    
+    # Make sure that the value passed to st.date_input is a valid tuple of dates
+    if isinstance(st.session_state.date_range, tuple) and len(st.session_state.date_range) == 2:
+        start_date, end_date = st.session_state.date_range
+    else:
+        # Set to the full range if invalid
+        start_date, end_date = df['order_purchase_timestamp'].min().date(), df['order_purchase_timestamp'].max().date()
+
     date_range = st.date_input(
-        "Or Select Date Range:", value=st.session_state.date_range,
+        "Or Select Date Range:", value=(start_date, end_date),
         min_value=df['order_purchase_timestamp'].min().date(),
         max_value=df['order_purchase_timestamp'].max().date(),
         disabled=date_range_disabled,
