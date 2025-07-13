@@ -55,26 +55,26 @@ st.markdown("""
 
     /* Tab Styling */
     .stTabs [data-baseweb="tab-list"] {
-		gap: 24px;
+        gap: 24px;
         border-bottom: 2px solid #F0F2F6;
-	}
+    }
 
-	.stTabs [data-baseweb="tab"] {
-		height: 50px;
+    .stTabs [data-baseweb="tab"] {
+        height: 50px;
         white-space: pre-wrap;
-		background-color: transparent;
-		border-radius: 8px 8px 0px 0px;
-		gap: 1px;
-		padding: 10px 20px;
+        background-color: transparent;
+        border-radius: 8px 8px 0px 0px;
+        gap: 1px;
+        padding: 10px 20px;
         font-weight: 700;
         transition: all 0.2s ease;
     }
 
-	.stTabs [aria-selected="true"] {
-  		background-color: #FFFFFF;
+    .stTabs [aria-selected="true"] {
+        background-color: #FFFFFF;
         border-bottom: 2px solid #1a73e8;
         color: #1a73e8;
-	}
+    }
 
     /* Sidebar Styling */
     [data-testid="stSidebar"] {
@@ -171,7 +171,11 @@ def initialize_session_state():
     if 'selected_year' not in st.session_state:
         st.session_state.selected_year = "All Years"
     if 'date_range' not in st.session_state:
-        st.session_state.date_range = (df['order_purchase_timestamp'].min().date(), df['order_purchase_timestamp'].max().date())
+        # Initialize as tuple of two datetime.date objects
+        st.session_state.date_range = (
+            df['order_purchase_timestamp'].min().date(), 
+            df['order_purchase_timestamp'].max().date()
+        )
     if 'selected_state' not in st.session_state:
         st.session_state.selected_state = "All States"
     if 'selected_category' not in st.session_state:
@@ -270,6 +274,8 @@ with tab_overview:
         plot_bgcolor='rgba(0,0,0,0)'
     )
     st.plotly_chart(fig_map, use_container_width=True)
+
+# Continue with the rest of the tabs, such as `tab_sales`, `tab_customer`, and `tab_product`, as in your original code.
 
 with tab_sales:
     st.subheader("Monthly Sales Revenue")
